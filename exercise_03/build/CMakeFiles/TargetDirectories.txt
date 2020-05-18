@@ -1,0 +1,3 @@
+/home/julian/Documents/TUM_Repos/3D-Scanning-Motion-Capture/exercise_03/build/CMakeFiles/rebuild_cache.dir
+/home/julian/Documents/TUM_Repos/3D-Scanning-Motion-Capture/exercise_03/build/CMakeFiles/edit_cache.dir
+/home/julian/Documents/TUM_Repos/3D-Scanning-Motion-Capture/exercise_03/build/CMakeFiles/exercise_03.dir
