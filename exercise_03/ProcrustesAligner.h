@@ -12,14 +12,18 @@ public:
 
 		auto sourceMean = computeMean(sourcePoints);
 		auto targetMean = computeMean(targetPoints);
+
+		std::cout << "Source/ Target mean computed." << std::endl;		
 		
 		Matrix3f rotation = estimateRotation(sourcePoints, sourceMean, targetPoints, targetMean);
 		Vector3f translation = computeTranslation(sourceMean, targetMean, rotation);
 
 		// TODO: Compute the transformation matrix by using the computed rotation and translation.
 		// You can access parts of the matrix with .block(start_row, start_col, num_rows, num_cols) = elements
-		Matrix4f estimatedPose = Matrix4f::Identity();
-
+		Matrix4f estimatedPose;
+		estimatedPose.block<3,3>(0,0) = rotation;
+		estimatedPose.block<1,4>(3,0) << 0, 0, 0, 1;
+		estimatedPose.block<3,1>(0,3) = translation;	
 		return estimatedPose;
 	}
 
@@ -27,19 +31,65 @@ private:
 	Vector3f computeMean(const std::vector<Vector3f>& points) {
 		// TODO: Compute the mean of input points.
 
-		return Vector3f::Zero();
+		Vector3f temp(0.0, 0.0, 0.0);
+		int i = 0;
+
+		for(auto& point: points){
+			temp += point;
+			i++;
+		}
+
+		return temp /= i;
 	}
 
 	Matrix3f estimateRotation(const std::vector<Vector3f>& sourcePoints, const Vector3f& sourceMean, const std::vector<Vector3f>& targetPoints, const Vector3f& targetMean) {
 		// TODO: Estimate the rotation from source to target points, following the Procrustes algorithm. 
 		// To compute the singular value decomposition you can use JacobiSVD() from Eigen.
 		
-		return Matrix3f::Identity();
+		// Zero center data and concatenate to matrix
+		// Target: x, source: x_hat
+
+		MatrixXf source(4,3);
+		MatrixXf target(4,3);
+		
+		int i = 0;
+		int j = 0;
+		
+		for(auto& point: sourcePoints){
+			source.row(i) = (point - sourceMean);
+			i++;
+		}	
+
+		for(auto& point: targetPoints){
+			target.row(j) = (point - targetMean);
+			j++;
+		}
+
+		std::cout << "Source - mean" << std::endl;
+		std::cout << sourceMean << std::endl;
+		std::cout << source << std::endl;
+		std::cout << "Target - mean" << std::endl;
+		std::cout << targetMean << std::endl;
+		std::cout << target << std::endl;
+
+		// Calculate Cross-Covariance Matrix
+		//x^{T}*x_hat
+
+		JacobiSVD<MatrixXf> svd(target.transpose() * source, ComputeFullU | ComputeFullV);
+		std::cout << "U" << std::endl;
+		std::cout << svd.matrixU() << std::endl;
+		std::cout << "V" << std::endl;
+		std::cout << svd.matrixV() << std::endl;	
+		std::cout << "R" << std::endl;
+		std::cout << svd.matrixU() * svd.matrixV().transpose() << std::endl;
+		std::cout << "R.determinant()" << std::endl;
+		std::cout << (svd.matrixU() * svd.matrixV().transpose()).determinant() << std::endl;
+		return (svd.matrixU() * svd.matrixV().transpose());
 	}
 
 	Vector3f computeTranslation(const Vector3f& sourceMean, const Vector3f& targetMean, const Matrix3f& rotation) {
 		// TODO: Compute the translation vector from source to target opints.
 		
-		return Vector3f::Zero();
+		return  (-rotation * sourceMean) + targetMean;
 	}
 };

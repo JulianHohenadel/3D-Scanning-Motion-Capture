@@ -49,7 +49,7 @@ int alignBunnyWithProcrustes() {
 	for (const auto& targetPoint : targetPoints) {
 		resultingMesh = SimpleMesh::joinMeshes(SimpleMesh::sphere(targetPoint, 0.002f), resultingMesh, Matrix4f::Identity());
 	}
-	resultingMesh.writeMesh(std::string("../results/bunny_procrustes.off"));
+	resultingMesh.writeMesh(std::string("bunny_procrustes.off"));
 	std::cout << "Resulting mesh written." << std::endl;
 	
 	return 0;
