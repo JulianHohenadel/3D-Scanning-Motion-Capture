@@ -1,0 +1,1 @@
+/usr/bin/c++     CMakeFiles/surface.dir/surface.cpp.o  -o surface  /usr/local/lib/libceres.a /usr/local/lib/libglog.a -lpthread 

@@ -1,0 +1,1 @@
+/usr/bin/c++     CMakeFiles/dragon.dir/dragon.cpp.o  -o dragon  /usr/local/lib/libceres.a /usr/local/lib/libglog.a -lpthread 

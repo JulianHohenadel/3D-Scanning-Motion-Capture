@@ -1,0 +1,5 @@
+/home/julian/Documents/TUM_Repos/3D-Scanning-Motion-Capture/exercise_04/build/CMakeFiles/edit_cache.dir
+/home/julian/Documents/TUM_Repos/3D-Scanning-Motion-Capture/exercise_04/build/CMakeFiles/surface.dir
+/home/julian/Documents/TUM_Repos/3D-Scanning-Motion-Capture/exercise_04/build/CMakeFiles/dragon.dir
+/home/julian/Documents/TUM_Repos/3D-Scanning-Motion-Capture/exercise_04/build/CMakeFiles/rebuild_cache.dir
+/home/julian/Documents/TUM_Repos/3D-Scanning-Motion-Capture/exercise_04/build/CMakeFiles/gaussian.dir

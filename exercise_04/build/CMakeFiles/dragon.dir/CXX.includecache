@@ -1,0 +1,34 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/julian/Documents/TUM_Repos/3D-Scanning-Motion-Capture/exercise_04/dragon.cpp
+utils/io.h
+/home/julian/Documents/TUM_Repos/3D-Scanning-Motion-Capture/exercise_04/utils/io.h
+utils/points.h
+/home/julian/Documents/TUM_Repos/3D-Scanning-Motion-Capture/exercise_04/utils/points.h
+ceres/ceres.h
+/home/julian/Documents/TUM_Repos/3D-Scanning-Motion-Capture/exercise_04/ceres/ceres.h
+math.h
+-
+
+/home/julian/Documents/TUM_Repos/3D-Scanning-Motion-Capture/exercise_04/utils/io.h
+points.h
+/home/julian/Documents/TUM_Repos/3D-Scanning-Motion-Capture/exercise_04/utils/points.h
+
+/home/julian/Documents/TUM_Repos/3D-Scanning-Motion-Capture/exercise_04/utils/points.h
+vector
+-
+fstream
+-
+istream
+-
+iostream
+-
+sstream
+-
+
