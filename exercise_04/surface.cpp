@@ -5,10 +5,23 @@
 #include <math.h>
 
 
-// TODO: Implement the cost function
 struct SurfaceCostFunction
 {
+    SurfaceCostFunction(const Point3D& point_)
+        : point(point_) 
+    {
+    }
 
+	template<typename T>
+	bool operator()(const T* const a, const T* const b, const T* const c, T* residual) const {
+        T x_sq = T(point.x * point.x);
+        T y_sq = T(point.y * point.y); 
+        residual[0] = *c * T(point.z) - (x_sq / *a) + (y_sq / *b);
+		return true;
+	}
+
+private:
+	const Point3D point;
 };
 
 
@@ -16,13 +29,27 @@ int main(int argc, char** argv)
 {
 	google::InitGoogleLogging(argv[0]);
 
-	// TODO: Read 3D surface data points and define the parameters of the problem
 	const std::string file_path = "../data/points_surface.txt";
+    const auto points = read_points_from_file<Point3D>(file_path);
 
-	ceres::Problem problem;
+	const double a_initial = 1.0;
+	const double b_initial = 2.0;
+	const double c_initial = 0.0;
 
-	// TODO: For each data point create one residual block
+	double a = a_initial;
+	double b = b_initial;
+	double c = c_initial;
+    	
+    ceres::Problem problem;
 
+    for (auto& point : points)
+	{
+		problem.AddResidualBlock(
+			new ceres::AutoDiffCostFunction<SurfaceCostFunction, 1, 1, 1, 1>(
+				new SurfaceCostFunction(point)),
+			nullptr, &a, &b, &c
+		);
+	}
 
 	ceres::Solver::Options options;
 	options.max_num_iterations = 100;
@@ -34,9 +61,11 @@ int main(int argc, char** argv)
 
 	std::cout << summary.BriefReport() << std::endl;
 	
-	// TODO: Output the final values of the parameters
+    std::cout << "Initial a: " << a_initial << "\tb: " << b_initial << "\tc: " << c_initial << std::endl;
+	std::cout << "Final a: " << a << "\tb: " << b << "\tc: " << c << std::endl;
 
+	std::cout << std::endl;
+	std::cout << "python3 plot_surface.py --a " << a << " --b " << b << " --c " << c << std::endl;
 
-	system("pause");
 	return 0;
 }
