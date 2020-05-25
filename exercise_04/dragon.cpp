@@ -21,11 +21,29 @@ int main(int argc, char** argv)
 	const std::string file_path_2 = "../data/points_dragon_2.txt";
 	const std::string file_path_weights = "../data/weights_dragon.txt";
 
+   const auto bf_trans = read_points_from_file<Point2D>(file_path_1);
+   const auto af_trans = read_points_from_file<Point2D>(file_path_2);
+   const auto weight_i = read_points_from_file<Point2D>(file_path_weights);
+
+   const double deg_initial = 45;
+   const double tx_initial = 1250;
+   const double ty_initial = 500;
+
+   double deg = deg_initial;
+   double tx = tx_initial;
+   double ty = ty_initial;
 
 	ceres::Problem problem;
 
 	// TODO: For each weighted correspondence create one residual block
-
+    for(int i = 0; i < bf_trans.size(); i++)
+    {
+        problem.AddResidualBlock(
+            new ceres::AutoDiffCostFunction<RegistrationCostFunction, 1, 1, 1, 1>(
+                new RegistrationCostFunction(bf_trans[i], af_trans[i], weight_i[i])),
+                    nullptr, &deg, &tx, $ty  
+        ); 
+    }
 
 	ceres::Solver::Options options;
 	options.max_num_iterations = 25;
