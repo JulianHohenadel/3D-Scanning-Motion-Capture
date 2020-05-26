@@ -5,7 +5,6 @@
 #include <math.h>
 
 
-// TODO: Implement the cost function
 struct RegistrationCostFunction
 {
     RegistrationCostFunction(const Point2D& bf_trans_, const Point2D& af_trans_, const Weight& weight_i_)
@@ -34,7 +33,6 @@ int main(int argc, char** argv)
 {
 	google::InitGoogleLogging(argv[0]);
 
-	// TODO: Read data points and the weights. Define the parameters of the problem
 	const std::string file_path_1 = "../data/points_dragon_1.txt";
 	const std::string file_path_2 = "../data/points_dragon_2.txt";
 	const std::string file_path_weights = "../data/weights_dragon.txt";
@@ -53,7 +51,6 @@ int main(int argc, char** argv)
 
 	ceres::Problem problem;
 
-	// TODO: For each weighted correspondence create one residual block
     for(int i = 0; i < bf_trans.size(); i++)
     {
         problem.AddResidualBlock(
@@ -73,10 +70,10 @@ int main(int argc, char** argv)
 
 	std::cout << summary.BriefReport() << std::endl;
 
-	// TODO: Output the final values of the translation and rotation (in degree)
     std::cout << "Initial deg: " << deg_initial << "\ttx: " << tx_initial << "\tty: " << ty_initial << std::endl;
 	std::cout << "Final deg: " << deg << "\ttx: " << tx << "\tty: " << ty << std::endl;
-	std::cout << "python3 plot_dragon.py --deg " << deg << " --tx " << tx << " --ty " << ty << std::endl;
+    
+    std::cout << "python3 plot_dragon.py --deg " << deg << " --tx " << tx << " --ty " << ty << std::endl;
 	
 	return 0;
 }

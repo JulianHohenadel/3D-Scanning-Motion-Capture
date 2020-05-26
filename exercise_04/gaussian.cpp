@@ -15,10 +15,8 @@ struct GaussianCostFunction
 	template<typename T>
 	bool operator()(const T* const mu, const T* const sigma, T* residual) const
 	{
-		// TODO: Implement the cost function
 		T sig_sq = *sigma * *sigma;
 		residual[0] = T(point.y) - (T(1) / sqrt(T(2) * M_PI * sig_sq) * exp(-((T(point.x) - *mu)*(T(point.x) - mu[0])) /(T(2) * sig_sq)));
-		// residual[0] = T(0.0);
 
 		return true;
 	}
@@ -64,10 +62,11 @@ int main(int argc, char** argv)
 	ceres::Solve(options, &problem, &summary);
 
 	std::cout << summary.BriefReport() << std::endl;
-	std::cout << "Initial mu: " << mu_initial << "\tsigma: " << sigma_initial << std::endl;
+
+    std::cout << "Initial mu: " << mu_initial << "\tsigma: " << sigma_initial << std::endl;
 	std::cout << "Final mu: " << mu << "\tsigma: " << sigma << std::endl;
 
+	std::cout << "python3 plot_gaussian.py --mu " << mu << " --sigma " << sigma  << std::endl;
 
-	system("pause");
 	return 0;
 }

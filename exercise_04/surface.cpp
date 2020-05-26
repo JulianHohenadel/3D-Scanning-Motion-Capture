@@ -64,7 +64,6 @@ int main(int argc, char** argv)
     std::cout << "Initial a: " << a_initial << "\tb: " << b_initial << "\tc: " << c_initial << std::endl;
 	std::cout << "Final a: " << a << "\tb: " << b << "\tc: " << c << std::endl;
 
-	std::cout << std::endl;
 	std::cout << "python3 plot_surface.py --a " << a << " --b " << b << " --c " << c << std::endl;
 
 	return 0;
