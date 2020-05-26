@@ -68,5 +68,5 @@ if __name__ == "__main__":
     parser.add_argument("--deg", type=float, default=0.0, help="Rotation value in degree from Ceres.")
     parser.add_argument("--tx", type=float, default=0.0, help="x translation value from Ceres.")
     parser.add_argument("--ty", type=float, default=0.0, help="y translation value from Ceres.")
-
+    print("alive")
     main(parser.parse_args())
