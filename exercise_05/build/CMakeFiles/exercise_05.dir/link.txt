@@ -1,1 +1,1 @@
-/usr/bin/c++     CMakeFiles/exercise_05.dir/main.cpp.o CMakeFiles/exercise_05.dir/FreeImageHelper.cpp.o  -o exercise_05  /usr/local/lib/libceres.a /usr/local/lib/libglog.a -lfreeimage -lflann -lflann_cpp -llz4 -lpthread 
+/usr/bin/c++  -O3 -DNDEBUG   CMakeFiles/exercise_05.dir/main.cpp.o CMakeFiles/exercise_05.dir/FreeImageHelper.cpp.o  -o exercise_05  /usr/local/lib/libceres.a /usr/local/lib/libglog.a -lfreeimage -lflann -lflann_cpp -llz4 -lpthread 

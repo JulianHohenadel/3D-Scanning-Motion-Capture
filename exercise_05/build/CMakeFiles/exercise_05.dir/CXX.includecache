@@ -1664,14 +1664,6 @@ Eigen/Sparse
 Eigen/SparseCholesky
 -
 
-/home/julian/Documents/TUM_Repos/3D-Scanning-Motion-Capture/exercise_05/FreeImageHelper.cpp
-FreeImageHelper.h
-/home/julian/Documents/TUM_Repos/3D-Scanning-Motion-Capture/exercise_05/FreeImageHelper.h
-iostream
--
-cstring
--
-
 /home/julian/Documents/TUM_Repos/3D-Scanning-Motion-Capture/exercise_05/FreeImageHelper.h
 string
 -

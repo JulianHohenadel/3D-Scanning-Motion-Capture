@@ -110,9 +110,26 @@ public:
 		// increment (pose parameters) to the source point, you can use the PoseIncrement class.
 		// Important: Ceres automatically squares the cost function.
 
-		residuals[0] = T(0);
-		residuals[1] = T(0);
-		residuals[2] = T(0);
+        Matrix<T, 3, 1> source;
+        Matrix<T, 3, 1> target;
+        Matrix<T, 3, 3> rotation;
+        Matrix<T, 3, 1> translation;
+        Matrix<T, 3, 1> ptp_distance;
+
+        source << T(m_sourcePoint.x()), T(m_sourcePoint.y()), T(m_sourcePoint.z());
+		target << T(m_targetPoint.x()), T(m_targetPoint.y()), T(m_targetPoint.z());
+        
+        rotation = AngleAxis<T>(pose[0], Matrix<T, 3, 1>::UnitX()) *
+	        	   AngleAxis<T>(pose[1], Matrix<T, 3, 1>::UnitY()) *
+		    	   AngleAxis<T>(pose[2], Matrix<T, 3, 1>::UnitZ());
+       
+        translation << pose[3], pose[4], pose[5];
+
+        ptp_distance = rotation * source + translation - target; 
+
+		residuals[0] = ptp_distance[0]; 
+		residuals[1] = ptp_distance[1]; 
+		residuals[2] = ptp_distance[2];
 
 		return true;
 	}
@@ -145,8 +162,26 @@ public:
 		// The resulting 1D residual should be stored in the residuals array. To apply the pose 
 		// increment (pose parameters) to the source point, you can use the PoseIncrement class.
 		// Important: Ceres automatically squares the cost function.
+        
+        Matrix<T, 3, 1> source;
+        Matrix<T, 3, 1> target;
+        Matrix<T, 3, 3> rotation;
+        Matrix<T, 3, 1> translation;
+        Matrix<T, 3, 1> ptpl_distance;
+        Matrix<T, 1, 3> normal;
 
-		residuals[0] = T(0);
+        source << T(m_sourcePoint.x()), T(m_sourcePoint.y()), T(m_sourcePoint.z());
+		target << T(m_targetPoint.x()), T(m_targetPoint.y()), T(m_targetPoint.z());
+        
+        rotation = AngleAxis<T>(pose[0], Matrix<T, 3, 1>::UnitX()) *
+	        	   AngleAxis<T>(pose[1], Matrix<T, 3, 1>::UnitY()) *
+		    	   AngleAxis<T>(pose[2], Matrix<T, 3, 1>::UnitZ());
+       
+        translation << pose[3], pose[4], pose[5];
+
+        ptpl_distance = rotation * source + translation - target; 
+
+		residuals[0] = T((normal * ptpl_distance)[0]);
 
 		return true;
 	}
@@ -233,7 +268,11 @@ protected:
 				const auto& targetNormal = targetNormals[match.idx];
 
 				// TODO: Invalidate the match (set it to -1) if the angle between the normals is greater than 60
-				
+    		    float rad = acos(sourceNormal.normalized().dot(targetNormal.normalized()));
+                float deg = (rad * 180.0) / M_PI;
+                if (deg > 60.0) {
+                    match.idx = -1.0;
+                }   
 			}
 		}
 	}
@@ -326,7 +365,10 @@ private:
 
 				// TODO: Create a new point-to-point cost function and add it as constraint (i.e. residual block) 
 				// to the Ceres problem.
-
+                problem.AddResidualBlock(
+					PointToPointConstraint::create(sourcePoint, targetPoint, 1.0 / (sourcePoint - targetPoint).norm()),
+					nullptr, poseIncrement.getData()
+				);
 
 				if (m_bUsePointToPlaneConstraints) {
 					const auto& targetNormal = targetNormals[match.idx];
@@ -336,7 +378,10 @@ private:
 
 					// TODO: Create a new point-to-plane cost function and add it as constraint (i.e. residual block) 
 					// to the Ceres problem.
-
+                    problem.AddResidualBlock(
+						PointToPlaneConstraint::create(sourcePoint, targetPoint, targetNormal, 1.0 / (sourcePoint - targetPoint).norm()),
+						nullptr, poseIncrement.getData()
+					);
 				}
 			}
 		}
