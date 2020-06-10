@@ -7,9 +7,9 @@
 #include "ICPOptimizer.h"
 #include "PointCloud.h"
 
-#define SHOW_BUNNY_CORRESPONDENCES 0 
+#define SHOW_BUNNY_CORRESPONDENCES 1 
 
-#define USE_POINT_TO_PLANE	1
+#define USE_POINT_TO_PLANE  1	
 #define USE_LINEAR_ICP		0
 
 #define RUN_SHAPE_ICP	    1	
@@ -79,18 +79,22 @@ int alignBunnyWithICP() {
 	ICPOptimizer* optimizer = nullptr;
 	if (USE_LINEAR_ICP) {
 		optimizer = new LinearICPOptimizer();
+        std::cout << "LinearICPOptimizer" << std::endl;
 	}
 	else {
 		optimizer = new CeresICPOptimizer();
+        std::cout << "CeresICPOptimizer" << std::endl;
 	}
 	
 	optimizer->setMatchingMaxDistance(0.0003f);
 	if (USE_POINT_TO_PLANE) {
 		optimizer->usePointToPlaneConstraints(true);
+        // Convergence: 22 iterations
 		optimizer->setNbOfIterations(10);
 	}
 	else {
 		optimizer->usePointToPlaneConstraints(false);
+        // Convergence: 49 iterations
 		optimizer->setNbOfIterations(20);
 	}
 
@@ -149,7 +153,7 @@ int reconstructRoom() {
 	}
 	else {
 		optimizer->usePointToPlaneConstraints(false);
-		optimizer->setNbOfIterations(20);
+        optimizer->setNbOfIterations(20);
 	}
 
 	// We store the estimated camera poses.

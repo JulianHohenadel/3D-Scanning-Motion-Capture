@@ -110,28 +110,34 @@ public:
 		// increment (pose parameters) to the source point, you can use the PoseIncrement class.
 		// Important: Ceres automatically squares the cost function.
 
-        Matrix<T, 3, 1> source;
-        Matrix<T, 3, 1> target;
-        Matrix<T, 3, 3> rotation;
-        Matrix<T, 3, 1> translation;
-        Matrix<T, 3, 1> ptp_distance;
+        T poseT[6];
+        T transformed[3];
+        T sourceT[3];
+        T targetT[3];
 
-        source << T(m_sourcePoint.x()), T(m_sourcePoint.y()), T(m_sourcePoint.z());
-		target << T(m_targetPoint.x()), T(m_targetPoint.y()), T(m_targetPoint.z());
-        
-        rotation = AngleAxis<T>(pose[0], Matrix<T, 3, 1>::UnitX()) *
-	        	   AngleAxis<T>(pose[1], Matrix<T, 3, 1>::UnitY()) *
-		    	   AngleAxis<T>(pose[2], Matrix<T, 3, 1>::UnitZ());
+        poseT[0] = pose[0];
+        poseT[1] = pose[1];
+        poseT[2] = pose[2];
+        poseT[3] = pose[3];
+        poseT[4] = pose[4];
+        poseT[5] = pose[5];
+
+        sourceT[0] = T(m_sourcePoint.x());
+        sourceT[1] = T(m_sourcePoint.y());
+        sourceT[2] = T(m_sourcePoint.z());
        
-        translation << pose[3], pose[4], pose[5];
+        targetT[0] = T(m_targetPoint.x());
+        targetT[1] = T(m_targetPoint.y());
+        targetT[2] = T(m_targetPoint.z());
+        
+        PoseIncrement<T> pose_increment(poseT);
+        pose_increment.apply(sourceT, transformed);
 
-        ptp_distance = rotation * source + translation - target; 
+		residuals[0] = T(m_weight) * (transformed[0] - targetT[0]);
+        residuals[1] = T(m_weight) * (transformed[1] - targetT[1]);
+        residuals[2] = T(m_weight) * (transformed[2] - targetT[2]);
 
-		residuals[0] = ptp_distance[0]; 
-		residuals[1] = ptp_distance[1]; 
-		residuals[2] = ptp_distance[2];
-
-		return true;
+        return true;
 	}
 
 	static ceres::CostFunction* create(const Vector3f& sourcePoint, const Vector3f& targetPoint, const float weight) {
@@ -163,27 +169,43 @@ public:
 		// increment (pose parameters) to the source point, you can use the PoseIncrement class.
 		// Important: Ceres automatically squares the cost function.
         
-        Matrix<T, 3, 1> source;
-        Matrix<T, 3, 1> target;
-        Matrix<T, 3, 3> rotation;
-        Matrix<T, 3, 1> translation;
-        Matrix<T, 3, 1> ptpl_distance;
-        Matrix<T, 1, 3> normal;
-
-        source << T(m_sourcePoint.x()), T(m_sourcePoint.y()), T(m_sourcePoint.z());
-		target << T(m_targetPoint.x()), T(m_targetPoint.y()), T(m_targetPoint.z());
+        T poseT[6];
+        T transformed[3];
+        T sourceT[3];
+        T targetT[3];
+        T normalT[3];
+        T dist[3];
         
-        rotation = AngleAxis<T>(pose[0], Matrix<T, 3, 1>::UnitX()) *
-	        	   AngleAxis<T>(pose[1], Matrix<T, 3, 1>::UnitY()) *
-		    	   AngleAxis<T>(pose[2], Matrix<T, 3, 1>::UnitZ());
+        poseT[0] = pose[0];
+        poseT[1] = pose[1];
+        poseT[2] = pose[2];
+        poseT[3] = pose[3];
+        poseT[4] = pose[4];
+        poseT[5] = pose[5];
+
+        sourceT[0] = T(m_sourcePoint.x());
+        sourceT[1] = T(m_sourcePoint.y());
+        sourceT[2] = T(m_sourcePoint.z());
        
-        translation << pose[3], pose[4], pose[5];
+        targetT[0] = T(m_targetPoint.x());
+        targetT[1] = T(m_targetPoint.y());
+        targetT[2] = T(m_targetPoint.z());
+        
+        normalT[0] = T(m_targetNormal.x());
+        normalT[1] = T(m_targetNormal.y());
+        normalT[2] = T(m_targetNormal.z());
+        
 
-        ptpl_distance = rotation * source + translation - target; 
+        PoseIncrement<T> pose_increment(poseT);
+        pose_increment.apply(sourceT, transformed);
 
-		residuals[0] = T((normal * ptpl_distance)[0]);
+        dist[0] = normalT[0] * (transformed[0] - targetT[0]);
+        dist[1] = normalT[1] * (transformed[1] - targetT[1]);
+        dist[2] = normalT[2] * (transformed[2] - targetT[2]);
 
-		return true;
+        residuals[0] = T(m_weight) * (dist[0] + dist[1] + dist[2]);
+
+        return true;
 	}
 
 	static ceres::CostFunction* create(const Vector3f& sourcePoint, const Vector3f& targetPoint, const Vector3f& targetNormal, const float weight) {
@@ -222,6 +244,7 @@ public:
 
 	void setNbOfIterations(unsigned nIterations) {
 		m_nIterations = nIterations;
+        std::cout << m_nIterations << " Iterations." << std::endl;
 	}
 
 	virtual Matrix4f estimatePose(const PointCloud& source, const PointCloud& target, Matrix4f initialPose = Matrix4f::Identity()) = 0;
@@ -268,11 +291,11 @@ protected:
 				const auto& targetNormal = targetNormals[match.idx];
 
 				// TODO: Invalidate the match (set it to -1) if the angle between the normals is greater than 60
-    		    float rad = acos(sourceNormal.normalized().dot(targetNormal.normalized()));
+    		    float rad = acos(sourceNormal.dot(targetNormal) / (sourceNormal.norm() * targetNormal.norm()));
                 float deg = (rad * 180.0) / M_PI;
                 if (deg > 60.0) {
                     match.idx = -1.0;
-                }   
+                }
 			}
 		}
 	}
@@ -365,10 +388,13 @@ private:
 
 				// TODO: Create a new point-to-point cost function and add it as constraint (i.e. residual block) 
 				// to the Ceres problem.
-                problem.AddResidualBlock(
-					PointToPointConstraint::create(sourcePoint, targetPoint, 1.0 / (sourcePoint - targetPoint).norm()),
-					nullptr, poseIncrement.getData()
-				);
+                //problem.AddResidualBlock(
+				//	PointToPointConstraint::create(sourcePoint, targetPoint, 1.0 / (sourcePoint - targetPoint).norm()),
+				//	nullptr, poseIncrement.getData()
+				//);
+                double* pose = poseIncrement.getData();
+                ceres::CostFunction* point_to_point_cost = PointToPointConstraint::create(sourcePoint, targetPoint, 1);
+                problem.AddResidualBlock(point_to_point_cost, nullptr,pose);
 
 				if (m_bUsePointToPlaneConstraints) {
 					const auto& targetNormal = targetNormals[match.idx];
@@ -378,10 +404,12 @@ private:
 
 					// TODO: Create a new point-to-plane cost function and add it as constraint (i.e. residual block) 
 					// to the Ceres problem.
-                    problem.AddResidualBlock(
-						PointToPlaneConstraint::create(sourcePoint, targetPoint, targetNormal, 1.0 / (sourcePoint - targetPoint).norm()),
-						nullptr, poseIncrement.getData()
-					);
+                    //problem.AddResidualBlock(
+					//	PointToPlaneConstraint::create(sourcePoint, targetPoint, targetNormal, 1.0 / (sourcePoint - targetPoint).norm()),
+				    //		nullptr, poseIncrement.getData()
+					//);
+                    ceres::CostFunction* point_to_plane_cost = PointToPlaneConstraint::create(sourcePoint, targetPoint, targetNormal, 1);
+                    problem.AddResidualBlock(point_to_plane_cost, nullptr,pose);
 				}
 			}
 		}
