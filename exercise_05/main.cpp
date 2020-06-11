@@ -7,7 +7,7 @@
 #include "ICPOptimizer.h"
 #include "PointCloud.h"
 
-#define SHOW_BUNNY_CORRESPONDENCES 1 
+#define SHOW_BUNNY_CORRESPONDENCES 0 
 
 #define USE_POINT_TO_PLANE  1	
 #define USE_LINEAR_ICP		0
@@ -89,7 +89,7 @@ int alignBunnyWithICP() {
 	optimizer->setMatchingMaxDistance(0.0003f);
 	if (USE_POINT_TO_PLANE) {
 		optimizer->usePointToPlaneConstraints(true);
-        // Convergence: 22 iterations
+        // Convergence: 8 iterations
 		optimizer->setNbOfIterations(10);
 	}
 	else {

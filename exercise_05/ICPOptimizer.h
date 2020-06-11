@@ -121,21 +121,16 @@ public:
         poseT[3] = pose[3];
         poseT[4] = pose[4];
         poseT[5] = pose[5];
-
-        sourceT[0] = T(m_sourcePoint.x());
-        sourceT[1] = T(m_sourcePoint.y());
-        sourceT[2] = T(m_sourcePoint.z());
-       
-        targetT[0] = T(m_targetPoint.x());
-        targetT[1] = T(m_targetPoint.y());
-        targetT[2] = T(m_targetPoint.z());
         
+        fillVector(m_sourcePoint, sourceT);
+        fillVector(m_targetPoint, targetT);
+
         PoseIncrement<T> pose_increment(poseT);
         pose_increment.apply(sourceT, transformed);
 
-		residuals[0] = T(m_weight) * (transformed[0] - targetT[0]);
-        residuals[1] = T(m_weight) * (transformed[1] - targetT[1]);
-        residuals[2] = T(m_weight) * (transformed[2] - targetT[2]);
+		residuals[0] = T(LAMBDA) * T(m_weight) * (transformed[0] - targetT[0]);
+        residuals[1] = T(LAMBDA) * T(m_weight) * (transformed[1] - targetT[1]);
+        residuals[2] = T(LAMBDA) * T(m_weight) * (transformed[2] - targetT[2]);
 
         return true;
 	}
@@ -183,18 +178,9 @@ public:
         poseT[4] = pose[4];
         poseT[5] = pose[5];
 
-        sourceT[0] = T(m_sourcePoint.x());
-        sourceT[1] = T(m_sourcePoint.y());
-        sourceT[2] = T(m_sourcePoint.z());
-       
-        targetT[0] = T(m_targetPoint.x());
-        targetT[1] = T(m_targetPoint.y());
-        targetT[2] = T(m_targetPoint.z());
-        
-        normalT[0] = T(m_targetNormal.x());
-        normalT[1] = T(m_targetNormal.y());
-        normalT[2] = T(m_targetNormal.z());
-        
+        fillVector(m_sourcePoint, sourceT);
+        fillVector(m_targetPoint, targetT);
+        fillVector(m_targetNormal, normalT);
 
         PoseIncrement<T> pose_increment(poseT);
         pose_increment.apply(sourceT, transformed);
@@ -203,7 +189,7 @@ public:
         dist[1] = normalT[1] * (transformed[1] - targetT[1]);
         dist[2] = normalT[2] * (transformed[2] - targetT[2]);
 
-        residuals[0] = T(m_weight) * (dist[0] + dist[1] + dist[2]);
+        residuals[0] = T(LAMBDA) * T(m_weight) * (dist[0] + dist[1] + dist[2]);
 
         return true;
 	}
@@ -291,10 +277,10 @@ protected:
 				const auto& targetNormal = targetNormals[match.idx];
 
 				// TODO: Invalidate the match (set it to -1) if the angle between the normals is greater than 60
-    		    float rad = acos(sourceNormal.dot(targetNormal) / (sourceNormal.norm() * targetNormal.norm()));
-                float deg = (rad * 180.0) / M_PI;
+    		    double rad = acos(sourceNormal.dot(targetNormal) / (sourceNormal.norm() * targetNormal.norm()));
+                double deg = (rad * 180.0) / M_PI;
                 if (deg > 60.0) {
-                    match.idx = -1.0;
+                    match.idx = -1;
                 }
 			}
 		}
@@ -388,13 +374,8 @@ private:
 
 				// TODO: Create a new point-to-point cost function and add it as constraint (i.e. residual block) 
 				// to the Ceres problem.
-                //problem.AddResidualBlock(
-				//	PointToPointConstraint::create(sourcePoint, targetPoint, 1.0 / (sourcePoint - targetPoint).norm()),
-				//	nullptr, poseIncrement.getData()
-				//);
-                double* pose = poseIncrement.getData();
-                ceres::CostFunction* point_to_point_cost = PointToPointConstraint::create(sourcePoint, targetPoint, 1);
-                problem.AddResidualBlock(point_to_point_cost, nullptr,pose);
+                ceres::CostFunction* point_to_point_cost = PointToPointConstraint::create(sourcePoint, targetPoint, 1.0);
+                problem.AddResidualBlock(point_to_point_cost, nullptr, poseIncrement.getData());
 
 				if (m_bUsePointToPlaneConstraints) {
 					const auto& targetNormal = targetNormals[match.idx];
@@ -404,12 +385,8 @@ private:
 
 					// TODO: Create a new point-to-plane cost function and add it as constraint (i.e. residual block) 
 					// to the Ceres problem.
-                    //problem.AddResidualBlock(
-					//	PointToPlaneConstraint::create(sourcePoint, targetPoint, targetNormal, 1.0 / (sourcePoint - targetPoint).norm()),
-				    //		nullptr, poseIncrement.getData()
-					//);
-                    ceres::CostFunction* point_to_plane_cost = PointToPlaneConstraint::create(sourcePoint, targetPoint, targetNormal, 1);
-                    problem.AddResidualBlock(point_to_plane_cost, nullptr,pose);
+                    ceres::CostFunction* point_to_plane_cost = PointToPlaneConstraint::create(sourcePoint, targetPoint, targetNormal, 1.0);
+                    problem.AddResidualBlock(point_to_plane_cost, nullptr, poseIncrement.getData());
 				}
 			}
 		}
@@ -494,7 +471,7 @@ private:
 			const auto& n = targetNormals[i];
 
 			// TODO: Add the point-to-plane constraints to the system
-
+            
 
 
 
