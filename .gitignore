@@ -6,7 +6,9 @@
 
 # libs folder
 libs/
-
+**/build/
+**/data/
+**/output/
 
 # User-specific files
 *.rsuser
