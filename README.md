@@ -14,3 +14,7 @@ two shapes with sparse correspondences provided.
 ## Exercise 4 – Gaussian – Surface – Registration
 In this exercise, we explore different optimization problems, that can be solved with a (non-)linear solver,
 Ceres (http://ceres-solver.org/) in our case.
+
+## Exercise 5 – Registration – ICP, CeresSolver
+In this exercise we want to align 3D shapes. We will explore different variants of the Iterative Closest
+Points (ICP) algorithm and test them on shapes provided either as meshes or with depth maps.
