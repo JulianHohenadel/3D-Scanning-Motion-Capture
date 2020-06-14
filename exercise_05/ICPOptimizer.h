@@ -105,10 +105,6 @@ public:
 
 	template <typename T>
 	bool operator()(const T* const pose, T* residuals) const {
-		// TODO: Implement the point-to-point cost function.
-		// The resulting 3D residual should be stored in the residuals array. To apply the pose 
-		// increment (pose parameters) to the source point, you can use the PoseIncrement class.
-		// Important: Ceres automatically squares the cost function.
 
         T poseT[6];
         T transformed[3];
@@ -159,10 +155,6 @@ public:
 
 	template <typename T>
 	bool operator()(const T* const pose, T* residuals) const {
-		// TODO: Implement the point-to-plane cost function.
-		// The resulting 1D residual should be stored in the residuals array. To apply the pose 
-		// increment (pose parameters) to the source point, you can use the PoseIncrement class.
-		// Important: Ceres automatically squares the cost function.
         
         T poseT[6];
         T transformed[3];
@@ -276,7 +268,6 @@ protected:
 				const auto& sourceNormal = sourceNormals[i];
 				const auto& targetNormal = targetNormals[match.idx];
 
-				// TODO: Invalidate the match (set it to -1) if the angle between the normals is greater than 60
     		    double rad = acos(sourceNormal.dot(targetNormal) / (sourceNormal.norm() * targetNormal.norm()));
                 double deg = (rad * 180.0) / M_PI;
                 if (deg > 60.0) {
@@ -372,8 +363,6 @@ private:
 				if (!sourcePoint.allFinite() || !targetPoint.allFinite())
 					continue;
 
-				// TODO: Create a new point-to-point cost function and add it as constraint (i.e. residual block) 
-				// to the Ceres problem.
                 ceres::CostFunction* point_to_point_cost = PointToPointConstraint::create(sourcePoint, targetPoint, 1.0);
                 problem.AddResidualBlock(point_to_point_cost, nullptr, poseIncrement.getData());
 
@@ -383,8 +372,6 @@ private:
 					if (!targetNormal.allFinite())
 						continue;
 
-					// TODO: Create a new point-to-plane cost function and add it as constraint (i.e. residual block) 
-					// to the Ceres problem.
                     ceres::CostFunction* point_to_plane_cost = PointToPlaneConstraint::create(sourcePoint, targetPoint, targetNormal, 1.0);
                     problem.AddResidualBlock(point_to_plane_cost, nullptr, poseIncrement.getData());
 				}
@@ -470,38 +457,63 @@ private:
 			const auto& d = targetPoints[i];
 			const auto& n = targetNormals[i];
 
-			// TODO: Add the point-to-plane constraints to the system
-            
+			A(4 * i, 0) = n(2) * s(1) - n(1) * s(2);
+			A(4 * i, 1) = n(0) * s(2) - n(2) * s(0);
+			A(4 * i, 2) = n(1) * s(0) - n(0) * s(1);
 
+			A(4 * i, 3) = n(0);
+			A(4 * i, 4) = n(1);
+			A(4 * i, 5) = n(2);	
 
+			b(4 * i) = n(0) * d(0) + n(1) * d(1) + n(2) * d(2) - n(0) * s(0) - n(1) * s(1) - n(2) * s(2);
 
+            // a_x
+            A(4 * i + 1, 0) = 0.0;
+			A(4 * i + 1, 1) = s(2);
+			A(4 * i + 1, 2) = -s(1);
 
+            // n_x
+			A(4 * i + 1, 3) = 1.0;
 
+            // b_x
+			b(4 * i + 1) = d(0) - s(0);
 
-			// TODO: Add the point-to-point constraints to the system
+            // a_y
+			A(4 * i + 2, 0) = -s(2);
+			A(4 * i + 2, 1) = 0.0;
+			A(4 * i + 2, 2) = s(0);
 
+            // n_y
+			A(4 * i + 2, 4) = 1.0;
 
+            // b_y
+			b(4 * i + 2) = d(1) - s(1);
 
+            // a_z
+			A(4 * i + 3, 0) = s(1);
+			A(4 * i + 3, 1) = -s(0);
+			A(4 * i + 3, 2) = 0.0;
 
+            // n_z
+			A(4 * i + 3, 5) = 1.0;
 
+            // b_z
+			b(4 * i + 3) = d(2) - s(2);
 
-			// TODO: Optionally, apply a higher weight to point-to-plane correspondences
+			const double scaling_factor = 0.75;
 
+			A(4 * i + 1)  *= scaling_factor;
+			b(4 * i + 1)  *= scaling_factor;
 
+			A(4 * i + 2)  *= scaling_factor;
+			b(4 * i + 2)  *= scaling_factor;
 
-
+			A(4 * i + 3)  *= scaling_factor;
+			b(4 * i + 3)  *= scaling_factor;
 		}
 
-		// TODO: Solve the system
 		VectorXf x(6);
-
-
-
-
-
-
-
-
+		x = A.bdcSvd(ComputeThinU | ComputeThinV).solve(b);
 		float alpha = x(0), beta = x(1), gamma = x(2);
 
 		// Build the pose matrix
@@ -511,10 +523,9 @@ private:
 
 		Vector3f translation = x.tail(3);
 
-		// TODO: Build the pose matrix using the rotation and translation matrices
 		Matrix4f estimatedPose = Matrix4f::Identity();
-		
-
+		estimatedPose.block<3,3>(0,0) = rotation;
+		estimatedPose.block<3,1>(0,3) = translation;
 
 		return estimatedPose;
 	}

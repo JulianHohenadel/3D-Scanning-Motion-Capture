@@ -10,10 +10,10 @@
 #define SHOW_BUNNY_CORRESPONDENCES 0 
 
 #define USE_POINT_TO_PLANE  1	
-#define USE_LINEAR_ICP		0
+#define USE_LINEAR_ICP	    1	
 
-#define RUN_SHAPE_ICP	    1	
-#define RUN_SEQUENCE_ICP    0
+#define RUN_SHAPE_ICP	    0	
+#define RUN_SEQUENCE_ICP    1 
 
 void debugCorrespondenceMatching() {
 	// Load the source and target mesh.
@@ -89,7 +89,7 @@ int alignBunnyWithICP() {
 	optimizer->setMatchingMaxDistance(0.0003f);
 	if (USE_POINT_TO_PLANE) {
 		optimizer->usePointToPlaneConstraints(true);
-        // Convergence: 8 iterations
+        // Ceres convergence: 8 iterations
 		optimizer->setNbOfIterations(10);
 	}
 	else {
